@@ -3,5 +3,5 @@
 [abstract]
 VMWare with Windows Node disconnected OpenShift install 
 
-include::partial.adoc[]
+include::mirror.adoc[]
 
