@@ -1,3 +1,5 @@
+:icons: font
+
 = VMWare IPI with Windows Machine Operator in a disconnected Openshift
 
 == Preparation
@@ -198,10 +200,19 @@ INFO Install-Config created in: .
 [start=3]
 . Modify install-config.yaml to point to mirror repository
 
-Edit install-config.yaml and add the *imageContentSources:* as captured during the mirroring process:
+Edit install-config.yaml and add the *imageContentSources:* as captured during the mirroring process, and make sure to change the NetworkType to OVNKubernetes from OpenShiftSDN:
 
 [code]
 ----
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 10.0.0.0/16
+  networkType: OVNKubernetes 
+  serviceNetwork:
+  - 172.30.0.0/16
 platform:
   vsphere:
     apiVIP: 192.168.89.5
@@ -223,4 +234,27 @@ imageContentSources:
   - bastion.pietersmalan.com:8443/quay/ocp
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ----
+
+TIP: If you want to add other mirrors, you can add your own in the imageContentSource. If you need to add a repository with password, you can add the password in the pullSecret section, with a username:password base64 encoded. Keep in kind that adding the secret in the install-config, would mean that  any pull from your specified mirror across the cluster's projects, will be using the predefined secret, which may cause some security concerns.
+
+[start=4]
+. Creating the Kubernetes Manifests
+
+WARNING: Make a backup of your install-config.yaml, outside of the working directory, as the install-config.yaml will be consumed when creating the manifests.
+
+[code]
+----
+cp install-config.yaml ..
+openshift-install create manifests
+----
+
+The output from above command:
+[code]
+----
+INFO Consuming Install Config from target directory 
+INFO Manifests created in: manifests and openshift 
+----
+
+
+
 
