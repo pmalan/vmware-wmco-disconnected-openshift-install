@@ -257,7 +257,7 @@ INFO Manifests created in: manifests and openshift
 ----
 
 == Setup OVNKubernetes Hybrid Networking
-. Create the configuration
+. Create the network configuration manifest
 [code]
 ----
 vi manifests/cluster-network-03-config.yaml
@@ -265,7 +265,8 @@ vi manifests/cluster-network-03-config.yaml
 
 Add the following content, keeping in mind that you might have to change the cidr subnet value, if overlapping with existing network environment.
 [code]
-----apiVersion: operator.openshift.io/v1
+----
+apiVersion: operator.openshift.io/v1
 kind: Network
 metadata:
   name: cluster
@@ -279,3 +280,66 @@ spec:
         hybridOverlayVXLANPort: 9898 
 ----
 
+== Slip Stream the WMCO Operator
+
+We can slip stream the WMCO Operator into the setup.
+
+Files are available under manifests in repository.
+
+. Create namespace for WMCO
+[code]
+----
+vi manifests/wmco-01-namespace.yaml
+----
+
+Insert the following code:
+
+[code]
+----apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-windows-machine-config-operator 
+  labels:
+    openshift.io/cluster-monitoring: "true" 
+----
+
+[start=2]
+. Create Operator Group for WMCO
+[code]
+----
+vi manifests/wmco-02-og.yaml
+----
+
+[code]
+----
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: windows-machine-config-operator
+  namespace: openshift-windows-machine-config-operator
+spec:
+  targetNamespaces:
+  - openshift-windows-machine-config-operator
+----
+
+[start=3]
+. Create WCMO Subscription
+[code]
+----
+vi manifests/wmco-03-sub.yaml
+----
+
+[code]
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: windows-machine-config-operator
+  namespace: openshift-windows-machine-config-operator
+spec:
+  channel: "stable" 
+  installPlanApproval: "Automatic" 
+  name: "windows-machine-config-operator"
+  source: "redhat-operators" 
+  sourceNamespace: "openshift-marketplace" 
+----
