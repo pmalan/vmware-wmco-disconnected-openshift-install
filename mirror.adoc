@@ -17,7 +17,7 @@
 ----
 ssh-keygen
 ssh-copy-id quayhostname
-sudo ./mirror-registry install -initUser quay --initPassword quayquay --quayHostname quayhostname --sslCert cert.pem --sslKey privkey.pem 
+sudo ./mirror-registry install --initUser quay --initPassword quayquay --quayHostname quayhostname --sslCert cert.pem --sslKey privkey.pem 
 ----
 [start=4]
 . Open firewall port for Quay, if firewall is in use
@@ -27,7 +27,7 @@ sudo --add-port=8443/tcp --zone=public --permanent
 sudo firewall-cmd --reload
 ----
 [start=5]
-. Create a new repository to host the mirror repository, using the web interface. In the following examples I am using "ocp", which will translate to "quay/ocp", ie. user/repo
+. Create a new repository to host the mirror repository, using the web interface. In the following examples I am using "ocp", which will translate to "quay/ocp", ie. user/repo.
 
 #### Setup Mirror process
 . Download the Openshift Installer, client and mirror plugin:
@@ -166,3 +166,32 @@ cd ~/openshift
 ----
 [start=2]
 . Create install-config.yaml
+[code]
+----
+openshift-install create install-config
+----
+[note]
+Supply all the answers as per usual install.
+
+Sample:
+[code]
+----
+[openshift@bastion openshift]$ openshift-install create install-config
+? Platform vsphere
+? vCenter vcsa.pietersmalan.com
+? Username administrator@pietersmalan.com
+? Password [? for help] ********
+INFO Connecting to vCenter vcsa.pietersmalan.com  
+INFO Defaulting to only available datacenter: Datacenter 
+INFO Defaulting to only available cluster: Cluster 
+INFO Defaulting to only available datastore: nvme 
+INFO Defaulting to only available network: VM Network 
+? Virtual IP Address for API 192.168.89.5
+? Virtual IP Address for Ingress 192.168.89.6
+? Base Domain pietersmalan.com
+? Cluster Name os
+? Pull Secret [? for help] ************
+....
+INFO Install-Config created in: .
+----
+----
