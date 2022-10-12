@@ -1,0 +1,2 @@
+# vmware-wmco-disconnected-openshift-install
+VMWare with Windows Node disconnected OpenShift install 
