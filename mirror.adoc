@@ -20,7 +20,14 @@ ssh-copy-id quayhostname
 sudo ./mirror-registry install -initUser quay --initPassword quayquay --quayHostname quayhostname --sslCert cert.pem --sslKey privkey.pem 
 ----
 [start=4]
-. Create a new repository to host the mirror, using the web interface. In the following example I am using "ocp"
+. Open firewall port for Quay, if firewall is in use
+[code]
+----
+sudo --add-port=8443/tcp --zone=public --permanent
+sudo firewall-cmd --reload
+----
+[start=5]
+. Create a new repository to host the mirror repository, using the web interface. In the following examples I am using "ocp", which will translate to "quay/ocp", ie. user/repo
 
 #### Setup Mirror process
 . Download the Openshift Installer, client and mirror plugin:
@@ -35,6 +42,7 @@ wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/ope
 tar xvf openshift-client-linux.tar.gz
 tar xvf openshift-install-linux.tar.gz
 tar xvf oc-mirror.tar.gz
+
 ----
 [start=2]
 . Configure security for pulling and pushing images:
@@ -44,6 +52,7 @@ mkdir ~/mirror
 cd ~/mirror
 <put your pullsecret copied form https://console.redhat.com/openshift/downloads in a file called pull-secret>
 cat ./pull-secret | jq . > pull-secret.json
+
 ----
 
 Append to the list of auths in the pull-secret.json,the registry credentails. The credentials can be generated through the Quay web site, as a logged in user - https://quayhostname:8443/user/quay?tab=settings, *Generate Encrypted Password*, then after entering password, *Docker Configuration* > View quay-auth.json :
@@ -137,20 +146,23 @@ spec:
 [note]
 Only required if vCenter does not use valid SSL certificates. 
 [code]
+----
 mkdir ~/vccerts
 cd ~/vccerts
-wget https://vcsa.pietersmalan.com/certs/download.zip
-sudo dnf install unzip
+wget --no-check-certificate https://vcsa.pietersmalan.com/certs/download.zip
+sudo dnf install unzip -y
 unzip download.zip
 sudo cp certs/lin/* /etc/pki/ca-trust/source/anchors
 sudo update-ca-trust extract
 
+----
 === Create Manifests
 . Create a seperate directory
 [code]
 ----
 mkdir ~/openshift
 cd ~/openshift
+
 ----
 [start=2]
 . Create install-config.yaml
