@@ -142,6 +142,7 @@ spec:
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ----
 
+TIP: For images not hosted on quay.io, you can setup also setup mirror, using the oc mirror plugin. An example used in the documentation is the Serverless Operator - https://docs.openshift.com/container-platform/4.11/installing/disconnected_install/installing-mirroring-disconnected.html
 
 == OpenShift Installation
 === Install vCenter Certificates
@@ -159,7 +160,7 @@ sudo update-ca-trust extract
 
 ----
 === Create Manifests
-. Create a seperate directory
+. Create a seperate directory to host our configuration information, and in the end the cluster authentication details. 
 [code]
 ----
 mkdir ~/openshift
@@ -255,6 +256,26 @@ INFO Consuming Install Config from target directory
 INFO Manifests created in: manifests and openshift 
 ----
 
+== Setup OVNKubernetes Hybrid Networking
+. Create the configuration
+[code]
+----
+vi manifests/cluster-network-03-config.yaml
+----
 
-
+Add the following content, keeping in mind that you might have to change the cidr subnet value, if overlapping with existing network environment.
+[code]
+----apiVersion: operator.openshift.io/v1
+kind: Network
+metadata:
+  name: cluster
+spec:
+  defaultNetwork:
+    ovnKubernetesConfig:
+      hybridOverlayConfig:
+        hybridClusterNetwork: 
+        - cidr: 10.132.0.0/14
+          hostPrefix: 23
+        hybridOverlayVXLANPort: 9898 
+----
 
