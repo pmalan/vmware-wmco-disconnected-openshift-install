@@ -1,2 +1,7 @@
-# vmware-wmco-disconnected-openshift-install
+= vmware-wmco-disconnected-openshift-install
+
+[abstract]
 VMWare with Windows Node disconnected OpenShift install 
+
+include::partial.adoc[]
+
