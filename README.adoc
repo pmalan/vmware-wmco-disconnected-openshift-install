@@ -1,7 +1,7 @@
-= vmware-wmco-disconnected-openshift-install
+= VMWare Windows Machine Config Operator install in a disconnected OpenShift
 
 [abstract]
 VMWare with Windows Node disconnected OpenShift install 
 
-include::mirror.adoc[]
+include::openshift-offline-mirror-install.adoc[OpenShift Offline using a Mirror]
 
