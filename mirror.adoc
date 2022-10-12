@@ -194,4 +194,33 @@ INFO Defaulting to only available network: VM Network
 ....
 INFO Install-Config created in: .
 ----
+
+[start=3]
+. Modify install-config.yaml to point to mirror repository
+
+Edit install-config.yaml and add the *imageContentSources:* as captured during the mirroring process:
+
+[code]
 ----
+platform:
+  vsphere:
+    apiVIP: 192.168.89.5
+    cluster: Cluster
+    datacenter: Datacenter
+    defaultDatastore: nvme
+    ingressVIP: 192.168.89.6
+    network: VM Network
+    username: administrator@pietersmalan.com
+    vCenter: vcsa.pietersmalan.com
+publish: External
+pullSecret: '{"auths":
+....
+imageContentSources:
+- mirrors:
+  - bastion.pietersmalan.com:8443/quay/ocp
+  source: quay.io/openshift-release-dev/ocp-release
+- mirrors:
+  - bastion.pietersmalan.com:8443/quay/ocp
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+----
+
