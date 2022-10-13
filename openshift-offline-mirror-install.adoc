@@ -159,6 +159,13 @@ sudo cp certs/lin/* /etc/pki/ca-trust/source/anchors
 sudo update-ca-trust extract
 
 ----
+=== Create ssh key
+[note]
+Only required if you want to access OpenShift nodes through ssh, in case of troubleshooting 
+[code]
+----
+ssh-keygen
+----
 === Create Manifests
 . Create a seperate directory to host our configuration information, and in the end the cluster authentication details. 
 [code]
