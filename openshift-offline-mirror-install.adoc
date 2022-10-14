@@ -187,6 +187,7 @@ Sample:
 [code]
 ----
 [openshift@bastion openshift]$ openshift-install create install-config
+? SSH Public Key /home/openshift/.ssh/id_rsa.pub
 ? Platform vsphere
 ? vCenter vcsa.pietersmalan.com
 ? Username administrator@pietersmalan.com
