@@ -4,20 +4,34 @@ metadata:
   creationTimestamp: null
   name: cluster
 spec:
-  clusterNetwork:
-  - cidr: 10.128.0.0/14
-    hostPrefix: 23
-  externalIP:
-    policy: {}
-  networkType: OVNKubernetes
-  serviceNetwork:
-  - 172.30.0.0/16
+  logLevel: Normal
+  operatorLogLevel: Normal
+  disableNetworkDiagnostics: false
+  observedConfig: null
   defaultNetwork:
-    type: OVNKubernetes
     ovnKubernetesConfig:
+      gatewayConfig:
+        routingViaHost: false
+      genevePort: 6081
       hybridOverlayConfig:
         hybridClusterNetwork:
-        - cidr: 10.132.0.0/14
-          hostPrefix: 23
-        # Not supported with Windows 2019 LTSC
+          - cidr: 10.132.0.0/14
+            hostPrefix: 23
         hybridOverlayVXLANPort: 9898
+      mtu: 1400
+      policyAuditConfig:
+        destination: 'null'
+        maxFileSize: 50
+        rateLimit: 20
+        syslogFacility: local0
+    type: OVNKubernetes
+  managementState: Managed
+  useMultiNetworkPolicy: false
+  unsupportedConfigOverrides: null
+  clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+  serviceNetwork:
+    - 172.30.0.0/16
+  deployKubeProxy: false
+  disableMultiNetwork: false
