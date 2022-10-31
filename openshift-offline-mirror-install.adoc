@@ -380,6 +380,8 @@ openshift-install create cluster
 
 = Windows Configuration (BYO Node)
 
+Credits to John Tomaszewski - https://www.zews.org/ocp/win2022-worker/
+
 Standard Windows Install.
 
 On the Windows Node in Powershell:
@@ -390,11 +392,11 @@ Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
 Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
 Set-Service -Name sshd -StartupType 'Automatic'
 Start-Service sshd
-New-NetFirewallRule -Name "SSH" -DisplayName "SSH" -Description "Allow SSH" -Profile Any -Direction Inbound -Ac...
-New-NetFirewallRule -Name "OCPLOGS" -DisplayName "OCPLOGS" -Description "Allow OCP Log Collection" -Profile Any...
+New-NetFirewallRule -Name "SSH" -DisplayName "SSH" -Description "Allow SSH" -Profile Any -Direction Inbound -Action Allow -Protocol TCP -Program Any -LocalAddress Any -RemoteAddress Any -LocalPort 22 -RemotePort Any 
+New-NetFirewallRule -Name "OCPLOGS" -DisplayName "OCPLOGS" -Description "Allow OCP Log Collection" -Profile Any -Direction Inbound -Action Allow -Protocol TCP -Program Any -LocalAddress Any -RemoteAddress Any -LocalPort 10250 -RemotePort Any 
 ssh-keygen
 $authorizedkry = Get-Content -Path $env:USERPROFILE\.ssh\id_rsa.pub
-$remotePowerShell = "powershell Add-Content -Force -Path $env:ProgramData\ssh\administrators_authorized_keys -V...
+$remotePowershell = "powershell Add-Content -Force -Path $env:ProgramData\ssh\administrators_authorized_keys -Value '$authorizedKey';icacls.exe ""$env:ProgramData\ssh\administrators_authorized_keys"" /inheritance:r /grant ""Administrators:F"" /grant ""SYSTEM:F"""
 cd .\.ssh\
 scp ./id_rsa openshift@openshiftinstallnode:~
 ----
