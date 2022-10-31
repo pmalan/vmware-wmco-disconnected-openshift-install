@@ -308,7 +308,7 @@ Files are available under manifests in repository.
 . Create namespace for WMCO
 [code]
 ----
-vi manifests/wmco-01-namespace.yaml
+vi openshift/wmco-01-namespace.yaml
 ----
 
 Insert the following code:
@@ -327,7 +327,7 @@ metadata:
 . Create Operator Group for WMCO
 [code]
 ----
-vi manifests/wmco-02-og.yaml
+vi openshift/wmco-02-og.yaml
 ----
 
 Insert the following code:
@@ -349,7 +349,7 @@ spec:
 
 [code]
 ----
-vi manifests/wmco-03-sub.yaml
+vi openshift/wmco-03-sub.yaml
 ----
 
 Insert the following code:
