@@ -401,8 +401,30 @@ cd .\.ssh\
 scp ./id_rsa openshift@openshiftinstallnode:~
 ----
 
-
+Back on the installer node, using the id_rsa we have copied from Windows node:
 
 [code]
+----
+oc create secret generic cloud-private-key --from-file=private-key.pem=id_rsa -n openshift-windows-machine-config-operator
+----
 
+Regsiter the Windows node, replace WINDOWSNODE_FQDN_OR_IP with Windows node ip, or fully qualified hostname: 
 
+[code]
+----
+cat <<EOF > winnode.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: windows-instances
+  namespace: openshift-windows-machine-config-operator
+data:
+  WINDOWSNODE_FQDN_OR_IP: |-
+    username=Administrator
+EOF
+----
+
+[code]
+----
+oc create -f winnode.yaml
+----
