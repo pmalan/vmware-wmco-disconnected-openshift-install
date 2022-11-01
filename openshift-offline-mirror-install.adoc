@@ -89,84 +89,90 @@ PACKAGE                          CHANNEL  HEAD
 windows-machine-config-operator  preview  windows-machine-config-operator.v6.0.0
 windows-machine-config-operator  stable   windows-machine-config-operator.v6.0.0
 ----
-. Create a template to start with:
+. Create a template to start with, or copy the sample:
 [code]
 ----
 oc mirror init --registry quayhost:8443/mirror/oc-mirror-metadata > imageset-config.yaml 
 ----
 
+Modified contents of imageset-config.yaml, produced by the command above with required images for wmco.
+
 [code]
 ----
-OCP_RELEASE=4.11.22
-LOCAL_REGISTRY='quayhost:8443'
-LOCAL_REPOSITORY='quay/ocp'
-LOCAL_SECRET_JSON='pull-secret.json'
-PRODUCT_REPO='openshift-release-dev'
-RELEASE_NAME='ocp-release'
-ARCHITECTURE=x86_64
-REMOVABLE_MEDIA_PATH=$PWD/dump/
-
-# Example to extract to local directory, to dump the images, transfer and use following command on remote to import
-#oc adm release mirror -a ${LOCAL_SECRET_JSON} --to-dir=${REMOVABLE_MEDIA_PATH}/mirror quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE}
-
-# Example to upload images from local directory, in the case of total disconnected install 
-#oc image mirror -a ${LOCAL_SECRET_JSON} --from-dir=${REMOVABLE_MEDIA_PATH}/mirror "file://openshift/release:${OCP_RELEASE}*" ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}
-
-# Registry to Registry mirror process
-oc adm release mirror -a ${LOCAL_SECRET_JSON} --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE}-${ARCHITECTURE} --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}
-
-#oc adm release extract -a ${LOCAL_SECRET_JSON} --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}-${ARCHITECTURE}"
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v1alpha2
+storageConfig:
+  registry:
+    imageURL: bastion.pietersmalan.com:8443/mirror/oc-mirror-metdata
+    skipTLS: false
+mirror:
+  platform:
+    channels:
+    - name: stable-4.11
+      type: ocp
+  operators:
+  - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.11
+    packages:
+    - name: windows-macine-config-operator
+      channels:
+      - name: stable
+  additionalImages:
+  - name: registry.redhat.io/ubi8/ubi:latest
+  helm: {}
 ----
-[start=4]
-. Capture the output, of the mirror command. At the bottom take note of the 2 sets of configurations, the *imageContentSources* and the *ImageContentSourcePolicy* :
+
+Start the mirror proces:
 [code]
 ----
-[openshift@bastion mirror]$ . ./mirror.sh 
-info: Mirroring 172 images to bastion.pietersmalan.com:8443/quay/ocp ...
+oc mirror --config=./imageset-config.yaml docker://bastion.pietersmalan.com:8443
+----
+
+The output would be similar to the following:
+[code]
+----
+Checking push permissions for bastion.pietersmalan.com:8443
+Creating directory: oc-mirror-workspace/src/publish
+Creating directory: oc-mirror-workspace/src/v2
+Creating directory: oc-mirror-workspace/src/charts
+Creating directory: oc-mirror-workspace/src/release-signatures
+No metadata detected, creating new workspace
+wrote mirroring manifests to oc-mirror-workspace/operators.1667285372/manifests-redhat-operator-index
+
+To upload local images to a registry, run:
+
+	oc adm catalog mirror file://redhat/redhat-operator-index:v4.11 REGISTRY/REPOSITORY
 bastion.pietersmalan.com:8443/
-  quay/ocp
+  openshift/release
     blobs:
-......
-phase 0:
-  bastion.pietersmalan.com:8443 quay/ocp blobs=351 mounts=0 manifests=172 shared=5
-
-info: Planning completed in 33.71s
-......
-info: Mirroring completed in 2m31.1s (96.06MB/s)
-
-Success
-Update image:  bastion.pietersmalan.com:8443/quay/ocp:4.11.7-x86_64
-Mirror prefix: bastion.pietersmalan.com:8443/quay/ocp
-Mirror prefix: bastion.pietersmalan.com:8443/quay/ocp:4.11.7-x86_64
-
-To use the new mirrored repository to install, add the following section to the install-config.yaml:
-
-imageContentSources:
-- mirrors:
-  - bastion.pietersmalan.com:8443/quay/ocp
-  source: quay.io/openshift-release-dev/ocp-release
-- mirrors:
-  - bastion.pietersmalan.com:8443/quay/ocp
-  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
-
-
-To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
-
-apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
-metadata:
-  name: example
-spec:
-  repositoryDigestMirrors:
-  - mirrors:
-    - bastion.pietersmalan.com:8443/quay/ocp
-    source: quay.io/openshift-release-dev/ocp-release
-  - mirrors:
-    - bastion.pietersmalan.com:8443/quay/ocp
-    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+      quay.io/openshift-release-dev/ocp-v4.0-art-dev sha256:d8190195889efb5333eeec18af9b6c82313edd4db62989bd3a357caca4f13f0e 1.404KiB
+      quay.io/openshift-release-dev/ocp-v4.0-art-dev sha256:53525f8b521a5f9317c9ce853653e176e9ed1037575ae7f5da2a2bed6a450060 1.804KiB
+      quay.io/openshift-release-dev/ocp-v4.0-art-dev sha256:17a7d9dcb5c2145df3d0adae108e5bfb9880760459672b1502bc363466740455 2.047KiB
+.....
+ manifests:
+      sha256:94b611f00f51c9acc44ca3f4634e46bd79d7d28b46047c7e3389d250698f0c99 -> 4.11.9-x86_64
+  openshift4-wincw/windows-machine-config-operator-bundle
+    blobs:
+      registry.redhat.io/openshift4-wincw/windows-machine-config-operator-bundle sha256:792a6efb36636881408b916f3b5c4ad22244bfba20619a6dc3fe76dba07de98c 4.984KiB
+      registry.redhat.io/openshift4-wincw/windows-machine-config-operator-bundle sha256:711db228ba0f794e7092f376ebe937957b50e53931f676996cc17a2cb3133533 10.67KiB
+    manifests:
+      sha256:17b5c18bacb38a2e4d0c3e53e166857af9c53f9e02dd0416b34974c1376f4f5e -> 3bb4a030
+  openshift4-wincw/windows-machine-config-rhel8-operator
+......  
+info: Mirroring completed in 3m26.03s (73.36MB/s)
+Rendering catalog image "bastion.pietersmalan.com:8443/redhat/redhat-operator-index:v4.11" with file-based catalog 
+Writing image mapping to oc-mirror-workspace/results-1667285694/mapping.txt
+Writing CatalogSource manifests to oc-mirror-workspace/results-1667285694
+Writing ICSP manifests to oc-mirror-workspace/results-1667285694
 ----
 
-TIP: For images not hosted on quay.io, you can setup also setup mirror, using the oc mirror plugin. An example used in the documentation is the Serverless Operator - https://docs.openshift.com/container-platform/4.11/installing/disconnected_install/installing-mirroring-disconnected.html
+[start=4]
+. Take not of the location of the  *ImageContentSourcePolicy* :
+[code]
+----
+cd oc-mirror-workspace/results-1667285694
+more imageContentSourcePolicy.yaml
+pwd
+----
 
 == OpenShift Installation
 === Install vCenter Certificates
@@ -233,7 +239,7 @@ INFO Install-Config created in: .
 [start=3]
 . Modify install-config.yaml to point to mirror repository
 
-Edit install-config.yaml and add the *imageContentSources:* as captured during the mirroring process, and make sure to change the NetworkType to OVNKubernetes from OpenShiftSDN:
+Edit install-config.yaml and add the *imageContentSourcePolicy* as captured during the mirroring process, by concatinating all the mirrors (everything under *repositoryDigestMirrors:*), and make sure to change the NetworkType to OVNKubernetes from OpenShiftSDN:
 
 [code]
 ----
@@ -261,14 +267,21 @@ pullSecret: '{"auths":
 ....
 imageContentSources:
 - mirrors:
-  - bastion.pietersmalan.com:8443/quay/ocp
-  source: quay.io/openshift-release-dev/ocp-release
+  - bastion.pietersmalan.com:8443/ubi8
+    source: registry.redhat.io/ubi8
 - mirrors:
-  - bastion.pietersmalan.com:8443/quay/ocp
-  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+  - bastion.pietersmalan.com:8443/openshift4-wincw
+    source: registry.redhat.io/openshift4-wincw
+- mirrors:
+  - bastion.pietersmalan.com:8443/redhat
+    source: registry.redhat.io/redhat
+- mirrors:
+  - bastion.pietersmalan.com:8443/openshift/release-images
+    source: quay.io/openshift-release-dev/ocp-release
+- mirrors:
+  - bastion.pietersmalan.com:8443/openshift/release
+    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ----
-
-TIP: If you want to add other mirrors, you can add your own in the imageContentSource. If you need to add a repository with password, you can add the password in the pullSecret section, with a username:password base64 encoded. Keep in kind that adding the secret in the install-config, would mean that  any pull from your specified mirror across the cluster's projects, will be using the predefined secret, which may cause some security concerns.
 
 [start=4]
 . Creating the Kubernetes Manifests
@@ -277,6 +290,7 @@ WARNING: Make a backup of your install-config.yaml, outside of the working direc
 
 [code]
 ----
+cd ~/openshift
 cp install-config.yaml ..
 openshift-install create manifests
 ----
@@ -292,6 +306,7 @@ INFO Manifests created in: manifests and openshift
 . Create the network configuration manifest
 [code]
 ----
+cd ~/openshift
 vi manifests/cluster-network-03-config.yaml
 ----
 
@@ -323,6 +338,14 @@ spec:
         hybridOverlayVXLANPort: 9898
 ----
 
+Copy the imageContentSourcePolicy and catalogSource-redhat-operator-index to manifests, using the results directory captured int mirroring process:
+
+[code]
+----
+cd ~/openshift
+cp /home/openshift/mirror/oc-mirror-workspace/results-1667285694/*.yaml openshift
+----
+
 == Slip Stream the WMCO Operator
 
 We can slip stream the WMCO Operator into the setup.
@@ -332,6 +355,7 @@ Files are available under manifests in repository.
 . Create namespace for WMCO
 [code]
 ----
+cd ~/openshift
 vi openshift/wmco-01-namespace.yaml
 ----
 
@@ -351,6 +375,7 @@ metadata:
 . Create Operator Group for WMCO
 [code]
 ----
+cd ~/openshift
 vi openshift/wmco-02-og.yaml
 ----
 
@@ -373,6 +398,7 @@ spec:
 
 [code]
 ----
+cd ~/openshift
 vi openshift/wmco-03-sub.yaml
 ----
 
