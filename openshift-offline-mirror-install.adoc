@@ -71,6 +71,30 @@ Append to the list of auths in the pull-secret.json,the registry credentails. Th
 . Create the following script, update required values OCP_RELEASE and LOCAL_REPOSITORY (from step 3 from setting up Quay). 
    Also comment out the relevant commands if you are going to use a fully disconnected Quay mirror.
    OCP_RELEASE can be obtained by running "oc version"
+   
+[code]
+----
+mkdir ~/.docker
+cp pull-secret.json ~/.docker/config.json
+----
+
+. Optional, check the availability of wmco in release 4.11, and the operator name, then query the available versions for operator:
+[code]
+----
+oc mirror list operators --catalog registry.redhat.io/redhat/redhat-operator-index:v4.11|grep windows
+windows-machine-config-operator               Windows Machine Config Operator   stable
+
+oc mirror list operators --package windows-machine-config-operator --catalog registry.redhat.io/redhat/redhat-operator-index:v4.11
+PACKAGE                          CHANNEL  HEAD
+windows-machine-config-operator  preview  windows-machine-config-operator.v6.0.0
+windows-machine-config-operator  stable   windows-machine-config-operator.v6.0.0
+----
+. Create a template to start with:
+[code]
+----
+oc mirror init --registry quayhost:8443/mirror/oc-mirror-metadata > imageset-config.yaml 
+----
+
 [code]
 ----
 OCP_RELEASE=4.11.22
