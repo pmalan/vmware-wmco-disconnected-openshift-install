@@ -82,7 +82,7 @@ cp pull-secret.json ~/.docker/config.json
 oc-mirror list operators --catalog registry.redhat.io/redhat/redhat-operator-index:v4.11|grep windows
 windows-machine-config-operator               Windows Machine Config Operator   stable
 
-oc mirror list operators --package windows-machine-config-operator --catalog registry.redhat.io/redhat/redhat-operator-index:v4.11
+oc-mirror list operators --package windows-machine-config-operator --catalog registry.redhat.io/redhat/redhat-operator-index:v4.11
 PACKAGE                          CHANNEL  HEAD
 windows-machine-config-operator  preview  windows-machine-config-operator.v6.0.0
 windows-machine-config-operator  stable   windows-machine-config-operator.v6.0.0
@@ -126,7 +126,7 @@ NOTE: For additional configuration, for example min/max version definitions etc,
 . Start the mirror proces:
 [code]
 ----
-oc mirror --config=./imageset-config.yaml docker://bastion.pietersmalan.com:8443
+oc-mirror --config=./imageset-config.yaml docker://bastion.pietersmalan.com:8443
 ----
 
 The output would be similar to the following:
@@ -168,18 +168,21 @@ Writing ICSP manifests to oc-mirror-workspace/results-1667285694
 ----
 
 [start=6]
-. Take not of the location of the  *ImageContentSourcePolicy* directory :
+. Take not of the location of the  results directory :
 [code]
 ----
 cd oc-mirror-workspace/results-1667285694
-more imageContentSourcePolicy.yaml
+more mapping.txt
 pwd
 ----
 
 == OpenShift Installation
+
+WARNING: Before runnnig the openshift-install command, compare the version numbers of the images as listed in the mapping.txt (/release:4.11.9-x86) file to the version of the openshift-install command, by executing *openshift-install version*. If not the same version, get the corresponding version of the openshift-install binary.
+
 === Install vCenter Certificates
-[note]
-Only required if vCenter does not use valid SSL certificates. 
+NOTE:Only required if vCenter does not use valid SSL certificates. 
+
 [code]
 ----
 mkdir ~/vccerts
