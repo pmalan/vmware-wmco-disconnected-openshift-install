@@ -28,10 +28,10 @@ sudo ./mirror-registry install --initUser quay --initPassword quayquay --quayHos
 sudo --add-port=8443/tcp --zone=public --permanent
 sudo firewall-cmd --reload
 ----
-[start=5]
-. Create a new repository to host the mirror repository, using the web interface. In the following examples I am using "ocp", which will translate to "quay/ocp", ie. user/repo.
 
 #### Setup Mirror process
+NOTE: It is assumed that the mirror registry has access to the internet and the target private subnet where Openshift will be installed. If not the mirror process should be done with an export to a tar file, then imported into the mirror registry in the private subnet, using a copy the tar file. See https://docs.openshift.com/container-platform/4.11/installing/disconnected_install/installing-mirroring-disconnected.html#mirroring-image-set-full 
+
 . Download the Openshift Installer, client and mirror plugin:
 
 [code]
@@ -57,7 +57,7 @@ cat ./pull-secret | jq . > pull-secret.json
 
 ----
 
-Append to the list of auths in the pull-secret.json,the registry credentails. The credentials can be generated through the Quay web site, as a logged in user - https://quayhostname:8443/user/quay?tab=settings, *Generate Encrypted Password*, then after entering password, *Docker Configuration* > View quay-auth.json :
+Append to the list of auths in the pull-secret.json, the local mirror registry credentails. The credentials can be generated through the Quay web site, as a logged in user - https://quayhostname:8443/user/quay?tab=settings, *Generate Encrypted Password*, then after entering password, *Docker Configuration* > View quay-auth.json :
 
 [code]
 ----
@@ -68,9 +68,7 @@ Append to the list of auths in the pull-secret.json,the registry credentails. Th
       },
 ----
 [start=3]
-. Create the following script, update required values OCP_RELEASE and LOCAL_REPOSITORY (from step 3 from setting up Quay). 
-   Also comment out the relevant commands if you are going to use a fully disconnected Quay mirror.
-   OCP_RELEASE can be obtained by running "oc version"
+. "Authenticate" against registry, to allow *oc mirror* access to all our registries involved:
    
 [code]
 ----
@@ -81,7 +79,7 @@ cp pull-secret.json ~/.docker/config.json
 . Optional, check the availability of wmco in release 4.11, and the operator name, then query the available versions for operator:
 [code]
 ----
-oc mirror list operators --catalog registry.redhat.io/redhat/redhat-operator-index:v4.11|grep windows
+oc-mirror list operators --catalog registry.redhat.io/redhat/redhat-operator-index:v4.11|grep windows
 windows-machine-config-operator               Windows Machine Config Operator   stable
 
 oc mirror list operators --package windows-machine-config-operator --catalog registry.redhat.io/redhat/redhat-operator-index:v4.11
@@ -89,13 +87,15 @@ PACKAGE                          CHANNEL  HEAD
 windows-machine-config-operator  preview  windows-machine-config-operator.v6.0.0
 windows-machine-config-operator  stable   windows-machine-config-operator.v6.0.0
 ----
+
+[start=4]
 . Create a template to start with, or copy the sample:
 [code]
 ----
-oc mirror init --registry quayhost:8443/mirror/oc-mirror-metadata > imageset-config.yaml 
+oc-mirror init --registry quayhost:8443/mirror/oc-mirror-metadata > imageset-config.yaml 
 ----
 
-Modified contents of imageset-config.yaml, produced by the command above with required images for wmco.
+Modified contents of imageset-config.yaml, notice the imageURL, produced by the command above with required operators section added for wmco.
 
 [code]
 ----
@@ -121,7 +121,9 @@ mirror:
   helm: {}
 ----
 
-Start the mirror proces:
+NOTE: For additional configuration, for example min/max version definitions etc, see https://docs.openshift.com/container-platform/4.11/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-imageset-config-params_installing-mirroring-disconnected
+[start=5]
+. Start the mirror proces:
 [code]
 ----
 oc mirror --config=./imageset-config.yaml docker://bastion.pietersmalan.com:8443
@@ -165,8 +167,8 @@ Writing CatalogSource manifests to oc-mirror-workspace/results-1667285694
 Writing ICSP manifests to oc-mirror-workspace/results-1667285694
 ----
 
-[start=4]
-. Take not of the location of the  *ImageContentSourcePolicy* :
+[start=6]
+. Take not of the location of the  *ImageContentSourcePolicy* directory :
 [code]
 ----
 cd oc-mirror-workspace/results-1667285694
@@ -239,7 +241,7 @@ INFO Install-Config created in: .
 [start=3]
 . Modify install-config.yaml to point to mirror repository
 
-Edit install-config.yaml and add the *imageContentSourcePolicy* as captured during the mirroring process, by concatinating all the mirrors (everything under *repositoryDigestMirrors:*), and make sure to change the NetworkType to OVNKubernetes from OpenShiftSDN:
+Edit install-config.yaml and add the *imageContentSourcePolicy* as captured during the mirroring process, by concatenating all the mirrors (everything under *repositoryDigestMirrors:* tags in *imageContentSourcePolicy.yaml), and make sure to change the NetworkType to OVNKubernetes from OpenShiftSDN:
 
 [code]
 ----
@@ -430,7 +432,7 @@ openshift-install create cluster
 
 = Windows Configuration (BYO Node)
 
-Credits to John Tomaszewski - https://www.zews.org/ocp/win2022-worker/
+NOTE: Credits to John Tomaszewski - https://www.zews.org/ocp/win2022-worker/
 
 Standard Windows Install.
 
