@@ -75,6 +75,17 @@ Append to the list of auths in the pull-secret.json, the local mirror registry c
 mkdir ~/.docker
 cp pull-secret.json ~/.docker/config.json
 ----
+ALernative,to login to all registries:
+[code]
+----
+PULL_SECRET_PATH=pull-secret.json
+for R in $(cat $PULL_SECRET_PATH | jq -r '.auths|keys[]'); do
+  echo "Logging into $R";
+  U=$(jq -r ".auths.\"$R\".auth" $PULL_SECRET_PATH | base64 -d | awk -F: '{print $1}')
+  P=$(jq -r ".auths.\"$R\".auth" $PULL_SECRET_PATH | base64 -d | awk -F: '{print $2}')
+  echo podman login -u $U -p $P $R
+done
+----
 
 . Optional, check the availability of wmco in release 4.11, and the operator name, then query the available versions for operator:
 [code]
