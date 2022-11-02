@@ -75,7 +75,8 @@ Append to the list of auths in the pull-secret.json, the local mirror registry c
 mkdir ~/.docker
 cp pull-secret.json ~/.docker/config.json
 ----
-ALernative,to login to all registries:
+
+An alternative to the above step, to log into all registries, as defined in pull-secret.json:
 [code]
 ----
 PULL_SECRET_PATH=pull-secret.json
