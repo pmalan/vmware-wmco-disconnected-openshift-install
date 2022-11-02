@@ -273,19 +273,19 @@ pullSecret: '{"auths":
 imageContentSources:
 - mirrors:
   - bastion.pietersmalan.com:8443/ubi8
-    source: registry.redhat.io/ubi8
+  source: registry.redhat.io/ubi8
 - mirrors:
   - bastion.pietersmalan.com:8443/openshift4-wincw
-    source: registry.redhat.io/openshift4-wincw
+  source: registry.redhat.io/openshift4-wincw
 - mirrors:
   - bastion.pietersmalan.com:8443/redhat
-    source: registry.redhat.io/redhat
+  source: registry.redhat.io/redhat
 - mirrors:
   - bastion.pietersmalan.com:8443/openshift/release-images
-    source: quay.io/openshift-release-dev/ocp-release
+  source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
   - bastion.pietersmalan.com:8443/openshift/release
-    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ----
 
 [start=4]
