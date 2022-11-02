@@ -77,6 +77,10 @@ cp pull-secret.json ~/.docker/config.json
 ----
 
 An alternative to the above step, to log into all registries, as defined in pull-secret.json:
+
+[example]
+Dale Bewley - https://gist.github.com/dlbewley/ae1d678300db47cfcee8ec141385eb22
+
 [code]
 ----
 PULL_SECRET_PATH=pull-secret.json
