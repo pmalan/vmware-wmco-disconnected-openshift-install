@@ -30,7 +30,7 @@ firewall-cmd --permanent --policy=VCSAPolicy --add-rich-rule='rule family="ipv4"
 firewall-cmd --reload
 #echo "net.ipv4.conf.all.route_localnet=1" > /etc/sysctl.d/90-enable-route-localnet.conf
 #sysctl -p /etc/sysctl.d/90-enable-route-localnet.conf
------
+----
 
 === Setup Quay Mirror Registry
 
