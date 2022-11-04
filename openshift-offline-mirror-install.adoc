@@ -4,14 +4,7 @@
 
 == Preparation
 
-=== Standard Openshift preparation
-== DNS
-
-
-
-== DHCP
-
-== Access to vSphere
+=== Access to vSphere
 
 In order for machine config operator to interact with the vSphere API, we need to expose the endpoint to the Openshift nodes.
 
@@ -20,6 +13,43 @@ In vSphere, you can add a total of 4 network adapters on the appliance. Addition
 Make sure that the hostname specified to access vCenter, resolves within the subnet as the VCHA ip address.
 
 NOTE: VMware VCSA 7 multiple network adapters https://4sysops.com/archives/vmware-vcsa-7-multiple-network-adapters/
+
+=== DNS
+On a node, with a fixed ip in the disconnected network, install dns. In this example 10.0.0.2. 
+
+As root install dnsmasq
+[code]
+----
+dnf install -y dnsmasq
+----
+
+Create /etc/dnsmasq.d/openshift-4.conf, where 10.0.0.6 is our apps wildcard, and "do" is our cluster name (disconnected "OpenShift").
+
+[code]
+----
+strict-order
+domain=pl.pietersmalan.com
+expand-hosts
+server=10.0.0.2
+interface=ens224
+address=/apps.do.pl.pietersmalan.com/10.0.0.6
+addn-hosts=/etc/dnsmasq-openshift-4.addnhosts
+----
+
+Add the dns entries for OpenShift, .5 for API, and the vSphere VCHA ip from previous step:
+
+/etc/dnsmasq-openshift-4.addnhosts
+[code]
+----
+10.0.0.5 api.do.pl.pietersmalan.com api-int.do.pl.pietersmalan.com
+10.0.0.2 bastion.pietersmalan.com bastion.pl.pietersmalan.com
+10.0.0.44 vcsa.pietersmalan.com
+----
+
+
+=== DHCP
+
+
 
 === Setup Quay Mirror Registry
 
