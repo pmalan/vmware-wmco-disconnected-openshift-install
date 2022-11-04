@@ -8,9 +8,9 @@
 
 In order for machine config operator to interact with the vSphere API, we need to expose the endpoint to the Openshift nodes.
 
-In vSphere, you can add a total of 4 network adapters on the appliance. Additional adapters will be marked VCHA.
+In vSphere, you can add a total of 4 network adapters on the appliance. Second adapter will be earmarked for VCHA, so if needed you have to add an additional adapter to configure.
 
-Make sure that the hostname specified to access vCenter, resolves within the subnet as the VCHA ip address.
+Make sure that the hostname specified to access vCenter, resolves within the subnet as the ip address specified on the third adapter.
 
 NOTE: VMware VCSA 7 multiple network adapters https://4sysops.com/archives/vmware-vcsa-7-multiple-network-adapters/
 
@@ -36,14 +36,14 @@ address=/apps.do.pl.pietersmalan.com/10.0.0.6
 addn-hosts=/etc/dnsmasq-openshift-4.addnhosts
 ----
 
-Add the dns entries for OpenShift, .5 for API, and the vSphere VCHA ip from previous step:
+Add the dns entries for OpenShift, .5 for API, and the vSphere ip from previous step:
 
 /etc/dnsmasq-openshift-4.addnhosts
 [code]
 ----
 10.0.0.5 api.do.pl.pietersmalan.com api-int.do.pl.pietersmalan.com
 10.0.0.2 bastion.pietersmalan.com bastion.pl.pietersmalan.com
-10.0.0.44 vcsa.pietersmalan.com
+10.0.0.250 vcsa.pietersmalan.com
 ----
 
 
