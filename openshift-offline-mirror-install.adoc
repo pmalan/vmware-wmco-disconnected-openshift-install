@@ -11,26 +11,15 @@
 
 == DHCP
 
-== Proxy access to vSphere
+== Access to vSphere
 
 In order for machine config operator to interact with the vSphere API, we need to expose the endpoint to the Openshift nodes.
 
-In this example - 10.0.0.2 (ens224) represents the host within private lan, and 192.68.89.102 (accessible through ens192) represents the vSphere Server. 
+In vSphere, you can add a total of 4 network adapters on the appliance. Additional adapters will be marked VCHA.
 
-Execute the following on the host within the private lan as root:
-[code]
-----
-firewall-cmd --permanent --zone=public --add-interface=ens192
-firewall-cmd --permanent --zone=internal --add-interface=ens224
-firewall-cmd --zone=internal --add-service=https --add-service=dns --add-service=dhcp --ad-service=ssh--permanent
-firewall-cmd --permanent --new-policy VCSAPolicy
-firewall-cmd --permanent --policy=VCSAPolicy --add-ingress-zone=internal
-firewall-cmd --permanent --policy=VCSAPolicy --add-egress-zone=ANY
-firewall-cmd --permanent --policy=VCSAPolicy --add-rich-rule='rule family="ipv4" destination address="10.0.0.2" forward-port port="443" protocol="tcp" to-port="443" to-addr="192.168.89.102"'
-firewall-cmd --reload
-#echo "net.ipv4.conf.all.route_localnet=1" > /etc/sysctl.d/90-enable-route-localnet.conf
-#sysctl -p /etc/sysctl.d/90-enable-route-localnet.conf
-----
+Make sure that the hostname specified to access vCenter, resolves within the subnet as the VCHA ip address.
+
+NOTE: VMware VCSA 7 multiple network adapters https://4sysops.com/archives/vmware-vcsa-7-multiple-network-adapters/
 
 === Setup Quay Mirror Registry
 
