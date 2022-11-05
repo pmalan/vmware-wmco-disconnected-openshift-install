@@ -235,6 +235,8 @@ more mapping.txt
 pwd
 ----
 
+WARNING: All the repositories in Quay will be created as "private", make sure to make them "public" through the Quay interface, before starting the OpenShift installer.
+
 == OpenShift Installation
 
 WARNING: Before runnnig the openshift-install command, compare the version numbers of the images as listed in the mapping.txt (/release:4.11.9-x86) file to the version of the openshift-install command, by executing *openshift-install version*. If not the same version, get the corresponding version of the openshift-install binary.
