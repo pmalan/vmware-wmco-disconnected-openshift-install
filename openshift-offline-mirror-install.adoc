@@ -166,8 +166,12 @@ storageConfig:
     skipTLS: false
 mirror:
   platform:
+    architectures:
+    - amd64
     channels:
     - name: stable-4.11
+      minVersion: 4.11.9
+      maxVersion: 4.11.9
       type: ocp
   operators:
   - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.11
@@ -176,9 +180,10 @@ mirror:
       channels:
       - name: stable
   additionalImages:
-  - name: registry.redhat.io/ubi8/ubi:latest
-  helm: {}
-----
+    - name: registry.redhat.io/ubi8/ubi:latest
+    - name: registry.redhat.io/redhat/redhat-operator-index:v4.11
+  
+  ----
 
 NOTE: For additional configuration, for example min/max version definitions etc, see https://docs.openshift.com/container-platform/4.11/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-imageset-config-params_installing-mirroring-disconnected
 [start=5]
@@ -485,6 +490,41 @@ spec:
   sourceNamespace: "openshift-marketplace" 
 ----
 
+Disable non- relevant operators in OperatorHub:
+
+[code]
+----
+cd ~/openshift
+vi openshift/disable-operatos.yaml
+----
+
+With the contents:
+[code]
+----
+apiVersion: config.openshift.io/v1
+kind: OperatorHub
+metadata:
+  annotations:
+    capability.openshift.io/name: marketplace
+    include.release.openshift.io/ibm-cloud-managed: "true"
+    include.release.openshift.io/self-managed-high-availability: "true"
+    include.release.openshift.io/single-node-developer: "true"
+    release.openshift.io/create-only: "true"
+  name: cluster
+spec:
+  sources:
+  - disabled: true
+    name: openshift-marketplace
+  - disabled: true
+    name: community-operators
+  - disabled: true
+    name: redhat-marketplace
+  - disabled: false
+    name: redhat-operators
+  - disabled: true
+    name: certified-operators
+
+----
 = Creating Cluster
 
 The last step is to create the OpenShift Cluster
@@ -562,17 +602,20 @@ Clone the Windows VM to a new VM.
 
 Using the new cloned Windows VM:
 
-Capture the private key from Windows node:
+Login and capture the private key from Windows node:
 [code]
 ----
-
+more .ssh\id_rsa
 ----
 
-Back on the installer machine, using the id_rsa we have copied from Windows node:
+Back on the installer machine, using the id_rsa we have captured from Windows node, create a file private-key.pem:
 
 [code]
 ----
-oc create secret generic cloud-private-key --from-file=private-key.pem=id_rsa -n openshift-windows-machine-config-operator
+cd
+vi private-key.pem
+export KUBECONFIG=~/openshift/auth/kubeconfig
+oc create secret generic cloud-private-key --from-file=private-key.pem=private-key.pem -n openshift-windows-machine-config-operator
 ----
 
 Regsiter the Windows node, replace WINDOWSNODE_FQDN_OR_IP with Windows node ip, or fully qualified hostname: 
