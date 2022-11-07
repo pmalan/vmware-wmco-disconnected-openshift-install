@@ -600,10 +600,6 @@ metadata:
   labels:
     machineconfiguration.openshift.io/role: master
   name: 99-master-override-registries
-  ownerReferences:
-  - apiVersion: config.openshift.io/v1
-    kind: Image
-    name: cluster
 spec:
   config:
     ignition:
@@ -634,10 +630,6 @@ metadata:
   labels:
     machineconfiguration.openshift.io/role: worker
   name: 99-worker-override-registries
-  ownerReferences:
-  - apiVersion: config.openshift.io/v1
-    kind: Image
-    name: cluster
 spec:
   config:
     ignition:
