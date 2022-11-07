@@ -525,6 +525,133 @@ spec:
     name: certified-operators
 
 ----
+
+== Enable image tags for ImageContentSourcePolicy
+
+At the moment, using image tags for ImageContentSourcePolicy resource is not supported. In order for the operators to work, we need to enable pulling using image tags. This is achieved by adding a registries.conf, in /etc/container/registries.conf.d:
+
+[code]
+----
+cd
+vi my_registry.conf
+----
+
+Copy the registries entries assembled, for install-config.yaml, as a reference:
+
+[code]
+----
+unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
+short-name-mode = ""
+
+[[registry]]
+  prefix = ""
+  location = "quay.io/openshift-release-dev/ocp-release"
+
+  [[registry.mirror]]
+    location = "bastion.pietersmalan.com:8443/openshift/release-images"
+
+[[registry]]
+  prefix = ""
+  location = "quay.io/openshift-release-dev/ocp-v4.0-art-dev"
+
+  [[registry.mirror]]
+    location = "bastion.pietersmalan.com:8443/openshift/release"
+
+[[registry]]
+  prefix = ""
+  location = "registry.redhat.io/openshift4-wincw"
+
+  [[registry.mirror]]
+    location = "bastion.pietersmalan.com:8443/openshift4-wincw"
+
+[[registry]]
+  prefix = ""
+  location = "registry.redhat.io/redhat"
+
+  [[registry.mirror]]
+    location = "bastion.pietersmalan.com:8443/redhat"
+
+[[registry]]
+  prefix = ""
+  location = "registry.redhat.io/ubi8"
+
+  [[registry.mirror]]
+    location = "bastion.pietersmalan.com:8443/ubi8"
+
+----
+
+[code]
+----
+base64 -w0 my_registry.conf
+----
+
+[code]
+----
+cd ~/openshift
+vi openshift/override-mirror-registries-master.yaml
+----
+
+With the contents:
+
+[code]
+----
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 99-master-override-registries
+  ownerReferences:
+  - apiVersion: config.openshift.io/v1
+    kind: Image
+    name: cluster
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          compression: ""
+          source: data:text/plain;charset=utf-8;base64,<base64 -w0 my_registry.conf>
+        mode: 420
+        overwrite: true
+        path: /etc/containers/registries.conf.d/99-master-mirror-by-digest-registries.conf
+
+[code]
+----
+cd ~/openshift
+vi openshift/override-mirror-registries-worker.yaml
+----
+
+With the contents:
+
+[code]
+----
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker
+  name: 99-worker-override-registries
+  ownerReferences:
+  - apiVersion: config.openshift.io/v1
+    kind: Image
+    name: cluster
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          compression: ""
+          source: data:text/plain;charset=utf-8;base64,<base64 -w0 my_registry.conf>
+        mode: 420
+        overwrite: true
+        path: /etc/containers/registries.conf.d/99-worker-mirror-by-digest-registries.conf
+
+----
 = Creating Cluster
 
 The last step is to create the OpenShift Cluster
