@@ -183,7 +183,7 @@ mirror:
     - name: registry.redhat.io/ubi8/ubi:latest
     - name: registry.redhat.io/redhat/redhat-operator-index:v4.11
   
-  ----
+----
 
 NOTE: For additional configuration, for example min/max version definitions etc, see https://docs.openshift.com/container-platform/4.11/installing/disconnected_install/installing-mirroring-disconnected.html#oc-mirror-imageset-config-params_installing-mirroring-disconnected
 [start=5]
