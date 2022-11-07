@@ -494,30 +494,81 @@ The last step is to create the OpenShift Cluster
 openshift-install create cluster
 ----
 
-= Windows Configuration (BYO Node)
+= Windows Configuration 
 
-NOTE: Credits to John Tomaszewski - https://www.zews.org/ocp/win2022-worker/
+== Windows Node preparation
 
-Standard Windows Install.
+Standard Windows 2022 Install, connected to internet.
 
-On the Windows Node in Powershell:
+Install VMWare Tools, from vSphere console.
+
+On the Windows Node in Powershell, as administrator:
+
+Download the wmco Windows scripts:
+[code]
+----
+Invoke-WebRequest -O configure-vm-tools.ps1 https://raw.githubusercontent.com/openshift/windows-machine-config-operator/release-4.11/docs/vsphere_ci/scripts/configure-vm-tools.ps1
+
+Invoke-WebRequest -O install-openssh.ps1 https://raw.githubusercontent.com/openshift/windows-machine-config-operator/release-4.11/docs/vsphere_ci/scripts/install-openssh.ps1
+
+Invoke-WebRequest -O install-updates.ps1 https://raw.githubusercontent.com/openshift/windows-machine-config-operator/release-4.11/docs/vsphere_ci/scripts/install-updates.ps1
+----
+
+Add exclude-nics in C:\ProgramData\VMware\VMware Tools
+[code]
+----
+.\configure-vm-tools.ps1
+----
+
+Install OpenSSL, and ssh key:
 
 [code]
 ----
-Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
-Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
-Set-Service -Name sshd -StartupType 'Automatic'
-Start-Service sshd
-New-NetFirewallRule -Name "SSH" -DisplayName "SSH" -Description "Allow SSH" -Profile Any -Direction Inbound -Action Allow -Protocol TCP -Program Any -LocalAddress Any -RemoteAddress Any -LocalPort 22 -RemotePort Any 
-New-NetFirewallRule -Name "OCPLOGS" -DisplayName "OCPLOGS" -Description "Allow OCP Log Collection" -Profile Any -Direction Inbound -Action Allow -Protocol TCP -Program Any -LocalAddress Any -RemoteAddress Any -LocalPort 10250 -RemotePort Any 
-ssh-keygen
-$authorizedkry = Get-Content -Path $env:USERPROFILE\.ssh\id_rsa.pub
-$remotePowershell = "powershell Add-Content -Force -Path $env:ProgramData\ssh\administrators_authorized_keys -Value '$authorizedKey';icacls.exe ""$env:ProgramData\ssh\administrators_authorized_keys"" /inheritance:r /grant ""Administrators:F"" /grant ""SYSTEM:F"""
-cd .\.ssh\
-scp ./id_rsa openshift@openshiftinstallnode:~
+ssh-keygen.exe
 ----
 
-Back on the installer node, using the id_rsa we have copied from Windows node:
+[code]
+----
+.\install-openssh.ps1 .\.ssh\id_rsa.pub
+ Get-Service -Name "ssh*" | Select Name, Status, StartType 
+ Get-NetFirewallRule -DisplayName "*ssh*"
+ 
+----
+
+If firewall rule does not exist, as reported in last statement ran:
+[code]
+----
+New-NetFirewallRule -DisplayName 'OpenSSH Server (sshd)' -LocalPort 22 -Enabled True -Direction Inbound -Protocol TCP -Action Allow 
+----
+
+Create a firewall rule for metrics:
+
+[code]
+----
+New-NetFirewallRule -DisplayName "ContainerLogsPort" -LocalPort 10250 -Enabled True -Direction Inbound -Protocol TCP -Action Allow -EdgeTraversalPolicy Allow
+----
+
+Install updates:
+[code]
+----
+ ./install-updates.ps1
+----
+
+WARNING: It is not stated, but you might have to reboot a couple of times.
+
+== Tests Windows Node (Optional)
+
+Clone the Windows VM to a new VM.
+
+Using the new cloned Windows VM:
+
+Capture the private key from Windows node:
+[code]
+----
+
+----
+
+Back on the installer machine, using the id_rsa we have copied from Windows node:
 
 [code]
 ----
