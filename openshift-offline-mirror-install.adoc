@@ -577,7 +577,6 @@ short-name-mode = ""
 
   [[registry.mirror]]
     location = "bastion.pietersmalan.com:8443/ubi8"
-
 ----
 
 [code]
@@ -617,6 +616,7 @@ spec:
         mode: 420
         overwrite: true
         path: /etc/containers/registries.conf.d/99-master-mirror-by-digest-registries.conf
+----
 
 [code]
 ----
