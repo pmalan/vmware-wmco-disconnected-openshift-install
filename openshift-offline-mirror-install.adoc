@@ -691,7 +691,7 @@ ssh-keygen -t ed25519
 
 [code]
 ----
-.\install-openssh.ps1 .\.ssh\id_rsa.pub
+.\install-openssh.ps1 .\.ssh\id_ed25519.pub
  Get-Service -Name "ssh*" | Select Name, Status, StartType 
  Get-NetFirewallRule -DisplayName "*ssh*"
  
@@ -733,7 +733,7 @@ Rename-Computer -NewName "winbyoh" -Restart
 Login and capture the private key from Windows node:
 [code]
 ----
-more .ssh\id_rsa
+more .\.ssh\id_ed25519
 ----
 
 Back on the installer machine, using the id_rsa we have captured from Windows node, create a file private-key.pem:
