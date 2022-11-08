@@ -664,7 +664,7 @@ Standard Windows 2022 Install, connected to internet.
 
 Install VMWare Tools, from vSphere console.
 
-On the Windows Node in Powershell, as administrator:
+On the Windows Node in *Powershell*, as administrator:
 
 Download the wmco Windows scripts:
 [code]
