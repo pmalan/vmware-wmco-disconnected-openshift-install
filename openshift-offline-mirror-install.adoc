@@ -686,7 +686,7 @@ Install OpenSSL, and ssh key:
 
 [code]
 ----
-ssh-keygen.exe
+ssh-keygen -t ed25519
 ----
 
 [code]
