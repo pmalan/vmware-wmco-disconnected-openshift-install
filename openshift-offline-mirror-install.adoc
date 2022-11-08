@@ -540,41 +540,38 @@ Copy the registries entries assembled, for install-config.yaml, as a reference:
 
 [code]
 ----
-unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
-short-name-mode = ""
-
 [[registry]]
   prefix = ""
   location = "quay.io/openshift-release-dev/ocp-release"
-
+ 
   [[registry.mirror]]
     location = "bastion.pietersmalan.com:8443/openshift/release-images"
 
 [[registry]]
   prefix = ""
   location = "quay.io/openshift-release-dev/ocp-v4.0-art-dev"
-
+ 
   [[registry.mirror]]
     location = "bastion.pietersmalan.com:8443/openshift/release"
 
 [[registry]]
   prefix = ""
   location = "registry.redhat.io/openshift4-wincw"
-
+ 
   [[registry.mirror]]
     location = "bastion.pietersmalan.com:8443/openshift4-wincw"
 
 [[registry]]
   prefix = ""
   location = "registry.redhat.io/redhat"
-
+ 
   [[registry.mirror]]
     location = "bastion.pietersmalan.com:8443/redhat"
 
 [[registry]]
   prefix = ""
   location = "registry.redhat.io/ubi8"
-
+ 
   [[registry.mirror]]
     location = "bastion.pietersmalan.com:8443/ubi8"
 ----
