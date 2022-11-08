@@ -643,11 +643,17 @@ spec:
 ----
 = Creating Cluster
 
-The last step is to create the OpenShift Cluster
+Create the OpenShift Cluster
 
 [code]
 ----
 openshift-install create cluster
+----
+
+Approve any outstanding Certificate Signing Requests
+[code]
+----
+oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs oc adm certificate approve
 ----
 
 = Windows Configuration 
@@ -717,6 +723,12 @@ WARNING: It is not stated, but you might have to reboot a couple of times.
 Clone the Windows VM to a new VM.
 
 Using the new cloned Windows VM:
+
+Rename host:
+[code]
+----
+Rename-Computer -NewName "winbyoh" -Restart
+----
 
 Login and capture the private key from Windows node:
 [code]
