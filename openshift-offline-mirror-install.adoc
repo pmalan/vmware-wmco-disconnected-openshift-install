@@ -736,12 +736,16 @@ Login and capture the private key from Windows node:
 more .\.ssh\id_ed25519
 ----
 
-Back on the installer machine, using the id_rsa we have captured from Windows node, create a file private-key.pem:
+Back on the installer machine, using the id_ed25519 we have captured from Windows node, create a file private-key.pem:
 
 [code]
 ----
 cd
 vi private-key.pem
+----
+
+[code]
+----
 export KUBECONFIG=~/openshift/auth/kubeconfig
 oc create secret generic cloud-private-key --from-file=private-key.pem=private-key.pem -n openshift-windows-machine-config-operator
 ----
@@ -765,4 +769,171 @@ EOF
 [code]
 ----
 oc create -f winnode.yaml
+----
+
+== Create Gold Image
+
+Login and capture the private key from Windows node:
+[code]
+----
+more .\.ssh\id_ed25519.pub
+----
+
+Back on the installer machine, using the id_ed25519.pub contents we have captured from Windows node, create a file private-key.pem:
+
+[code]
+----
+cd
+vi private-key.pem
+----
+
+[code]
+----
+export KUBECONFIG=~/openshift/auth/kubeconfig
+oc create secret generic cloud-private-key --from-file=private-key.pem=private-key.pem -n openshift-windows-machine-config-operator
+----
+
+Get a sample of the unattend.xml, and adopt accordingly:
+[code]
+----
+Invoke-WebRequest -O unattend.xml https://raw.githubusercontent.com/openshift/windows-machine-config-operator/release-4.11/docs/unattend.xml
+
+more unattend.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!--A sample unattend.xml which helps in setting admin password and running scripts on first boot-->
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+   <settings pass="specialize">
+      <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+         <InputLocale>0409:00000409</InputLocale>
+         <SystemLocale>en-US</SystemLocale>
+         <UILanguage>en-US</UILanguage>
+         <UILanguageFallback>en-US</UILanguageFallback>
+         <UserLocale>en-US</UserLocale>
+      </component>
+      <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Security-SPP-UX" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+         <SkipAutoActivation>true</SkipAutoActivation>
+      </component>
+      <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-SQMApi" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+         <CEIPEnabled>0</CEIPEnabled>
+      </component>
+      <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+         <ComputerName>winnode</ComputerName>
+      </component>
+   </settings>
+   <settings pass="oobeSystem">
+      <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+         <AutoLogon>
+            <!-- Disable automatic logon to avoid the security issue of leaving an open terminal with Administrator
+            privileges at boot. This is the default value and should not be changed. -->
+            <Enabled>false</Enabled>
+         </AutoLogon>
+         <OOBE>
+            <HideEULAPage>true</HideEULAPage>
+            <HideLocalAccountScreen>true</HideLocalAccountScreen>
+            <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+            <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+            <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+            <NetworkLocation>Work</NetworkLocation>
+            <ProtectYourPC>1</ProtectYourPC>
+            <SkipMachineOOBE>true</SkipMachineOOBE>
+            <SkipUserOOBE>true</SkipUserOOBE>
+         </OOBE>
+         <RegisteredOrganization>Organization</RegisteredOrganization>
+         <RegisteredOwner>Owner</RegisteredOwner>
+         <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
+         <TimeZone>Eastern Standard Time</TimeZone>
+         <UserAccounts>
+            <!-- Prevents the built-in Administrator account from having a blank password by default. -->
+            <AdministratorPassword>
+                <!-- Replace the `MyPassword` placeholder with the password for the Administrator account -->
+               <Value>MyPassword</Value>
+               <PlainText>true</PlainText>
+            </AdministratorPassword>
+         </UserAccounts>
+      </component>
+   </settings>
+</unattend>
+----
+
+Since you can only run the *sysprep* utility a limited times, it is a good idea to make a clone before continuing.
+
+Run the sysprep utility:
+[code]
+----
+C:\Windows\System32\Sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:unattend.xml
+----
+
+Once the sysprep command completes the Windows virtual machine will power off.
+
+You must not use or power on this virtual machine anymore.
+
+Convert virtual machine into template.
+
+Creating the machine set:
+
+Using the existing worker machine set as an example to fill in the required values:
+[code]
+-----
+oc get machineset -A
+
+NAMESPACE               NAME              DESIRED   CURRENT   READY   AVAILABLE   AGE
+openshift-machine-api   do-q9fvp-worker   3         3         3       3           24h
+
+
+oc get MachineSet/do-q9fvp-worker -n openshift-machine-api -o jsonpath='{.spec}{"\n"}'
+
+{"replicas":3,"selector":{"matchLabels":{"machine.openshift.io/cluster-api-cluster":"do-q9fvp","machine.openshift.io/cluster-api-machineset":"do-q9fvp-worker"}},"template":{"metadata":{"labels":{"machine.openshift.io/cluster-api-cluster":"do-q9fvp","machine.openshift.io/cluster-api-machine-role":"worker","machine.openshift.io/cluster-api-machine-type":"worker","machine.openshift.io/cluster-api-machineset":"do-q9fvp-worker"}},"spec":{"lifecycleHooks":{},"metadata":{},"providerSpec":{"value":{"apiVersion":"machine.openshift.io/v1beta1","credentialsSecret":{"name":"vsphere-cloud-credentials"},"diskGiB":120,"kind":"VSphereMachineProviderSpec","memoryMiB":16384,"metadata":{"creationTimestamp":null},"network":{"devices":[{"networkName":"Disconected VM"}]},"numCPUs":4,"numCoresPerSocket":4,"snapshot":"","template":"do-q9fvp-rhcos","userDataSecret":{"name":"worker-user-data"},"workspace":{"datacenter":"Datacenter","datastore":"Datastore","folder":"/Datacenter/vm/do-q9fvp","resourcePool":"/Datacenter/host/Cluster/Resources","server":"vcsa.pietersmalan.com"}}}}}}
+
+----
+
+[code]
+----
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: <infrastructure_id> 
+  name: <windows_machine_set_name> 
+  namespace: openshift-machine-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: <infrastructure_id> 
+      machine.openshift.io/cluster-api-machineset: <windows_machine_set_name> 
+  template:
+    metadata:
+      labels:
+        machine.openshift.io/cluster-api-cluster: <infrastructure_id> 
+        machine.openshift.io/cluster-api-machine-role: worker
+        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machineset: <windows_machine_set_name> 
+        machine.openshift.io/os-id: Windows 
+    spec:
+      metadata:
+        labels:
+          node-role.kubernetes.io/worker: "" 
+      providerSpec:
+        value:
+          apiVersion: vsphereprovider.openshift.io/v1beta1
+          credentialsSecret:
+            name: vsphere-cloud-credentials
+          diskGiB: 128 
+          kind: VSphereMachineProviderSpec
+          memoryMiB: 16384
+          network:
+            devices:
+            - networkName: "<vm_network_name>" 
+          numCPUs: 4
+          numCoresPerSocket: 1
+          snapshot: ""
+          template: <windows_vm_template_name> 
+          userDataSecret:
+            name: windows-user-data 
+          workspace:
+             datacenter: <vcenter_datacenter_name> 
+             datastore: <vcenter_datastore_name> 
+             folder: <vcenter_vm_folder_path> 
+             resourcePool: <vsphere_resource_pool> 
+             server: <vcenter_server_ip> 
 ----
