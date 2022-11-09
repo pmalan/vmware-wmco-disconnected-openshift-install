@@ -776,10 +776,10 @@ oc create -f winnode.yaml
 Login and capture the private key from Windows node:
 [code]
 ----
-more .\.ssh\id_ed25519.pub
+more .\.ssh\id_ed25519
 ----
 
-Back on the installer machine, using the id_ed25519.pub contents we have captured from Windows node, create a file private-key.pem:
+Back on the installer machine, using the id_ed25519 contents we have captured from Windows node, create a file private-key.pem:
 
 [code]
 ----
