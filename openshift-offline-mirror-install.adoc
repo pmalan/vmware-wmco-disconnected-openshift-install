@@ -932,6 +932,7 @@ oc get MachineSet/do-q9fvp-worker -n openshift-machine-api -o jsonpath='{.spec}{
 
 ----
 
+
 [code]
 ----
 apiVersion: machine.openshift.io/v1beta1
@@ -982,4 +983,25 @@ spec:
              folder: <vcenter_vm_folder_path> 
              resourcePool: <vsphere_resource_pool> 
              server: <vcenter_server_ip> 
+----
+
+Create a runtime class to associate your deployments with Windows Containers:
+
+[code]
+----
+apiVersion: node.k8s.io/v1beta1
+kind: RuntimeClass
+metadata:
+  name: wincontainerrt
+handler: 'docker'
+scheduling:
+  nodeSelector: 2
+    kubernetes.io/os: 'windows'
+    kubernetes.io/arch: 'amd64'
+    node.kubernetes.io/windows-build: '10.0.17763'
+  tolerations: 3
+  - effect: NoSchedule
+    key: os
+    operator: Equal
+    value: "Windows"
 ----
