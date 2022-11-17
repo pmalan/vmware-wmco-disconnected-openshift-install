@@ -764,7 +764,7 @@ Install updates:
 
 WARNING: It is not stated, but you might have to reboot a couple of times.
 
-== Tests Windows Node (Optional)
+=== Tests Windows Node (Optional)
 
 Clone the Windows VM to a new VM.
 
@@ -914,6 +914,69 @@ Once the sysprep command completes the Windows virtual machine will power off.
 You must not use or power on this virtual machine anymore.
 
 Convert virtual machine into template.
+
+== Modify WCMO Operator 
+
+For the Windows node to use mirrors, we have to inject the configuration for containerd.
+
+Containerd use the containerd_conf.toml for configuration.
+
+Make changes to containerd_conf.toml, sandbox_image, under [plugins."io.containerd.grpc.v1.cri"] and also add plugins."io.containerd.grpc.v1.cri".registry.mirrors entry for all the registries you want to access through the mirror.
+
+[code]
+-----
+....
+[plugins."io.containerd.grpc.v1.cri"]
+    disable_apparmor = false
+    disable_cgroup = false
+    disable_hugetlb_controller = false
+    disable_proc_mount = false
+    disable_tcp_service = true
+    enable_selinux = false
+    enable_tls_streaming = false
+    ignore_image_defined_volumes = false
+    image_pull_progress_timeout = "30m0s"
+    max_concurrent_downloads = 3
+    max_container_log_line_size = 16384
+    netns_mounts_under_state_dir = false
+    restrict_oom_score_adj = false
+    sandbox_image = "bastion.pietersmalan.com:8443/oss/kubernetes/pause:3.6"
+....
+[plugins."io.containerd.grpc.v1.cri".registry]
+      config_path = ""
+
+      [plugins."io.containerd.grpc.v1.cri".registry.auths]
+
+      [plugins."io.containerd.grpc.v1.cri".registry.configs]
+      [plugins."io.containerd.grpc.v1.cri".registry.configs."bastion.pietersmalan.com:8443".tls]
+        insecure_skip_verify = true
+
+      [plugins."io.containerd.grpc.v1.cri".registry.headers]
+
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."mcr.microsoft.com"]
+        endpoint = ["https://bastion.pietersmalan.com:8443","https://mcr.microsoft.com"]
+
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
+        endpoint = ["https://bastion.pietersmalan.com:8443","https://quay.io"]
+....
+
+-----
+
+Update the operator image, with the changed containerd_conf.toml:
+[code]
+----
+podman pull bastion.pietersmalan.com:8443/openshift4-wincw/windows-machine-config-rhel8-operator:dd60cd8d
+podman create --name temp_container bastion.pietersmalan.com:8443/openshift4-wincw/windows-machine-config-rhel8-operator:dd60cd8d
+podman cp $PWD/containerd_conf.toml temp_container:/payload/containerd/containerd_conf.toml
+podman commit temp_container bastion.pietersmalan.com:8443/openshift4-wincw/windows-machine-config-rhel8-operator:patch
+podman push bastion.pietersmalan.com:8443/openshift4-wincw/windows-machine-config-rhel8-operator:patch
+podman rm temp_container
+----
+
+Replace the image reference in the operator yaml.
+
+== Machine Set Configuration
 
 Creating the machine set:
 
