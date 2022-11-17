@@ -1047,16 +1047,6 @@ spec:
              server: <vcenter_server_ip> 
 ----
 
-Change the c:\k\containerd\containerd_conf.toml to reflect local sandbox_image:
-[code]
-----
-netns_mounts_under_state_dir = false
-restrict_oom_score_adj = false
-sandbox_image = "bastion.pietersmalan.com:8443/oss/kubernetes/pause:3.6"
-selinux_category_range = 0
-stats_collect_period = 10
-stream_idle_timeout = "4h0m0s"
-----
 Create a runtime class to associate your deployments with Windows Containers:
 
 [code]
@@ -1076,6 +1066,17 @@ scheduling:
     key: os
     operator: Equal
     value: "Windows"
+----
+
+== Pulling Windows Container Images
+
+oc-mirror does not handle Windows Containers with foreign layers.
+
+To copy images to mirror, use skopeo:
+
+[code]
+----
+skopeo --override-os windows copy docker://mcr.microsoft.com/windows/servercore:ltsc2022 docker://bastion.pietersmalan.com:8443/windows/servercore:ltsc2022
 ----
 
 Sample deployment, using nodeselector:
