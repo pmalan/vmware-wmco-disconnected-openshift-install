@@ -1076,7 +1076,11 @@ To copy images to mirror, use skopeo:
 
 [code]
 ----
-skopeo --override-os windows copy docker://mcr.microsoft.com/windows/servercore:ltsc2022 docker://bastion.pietersmalan.com:8443/windows/servercore:ltsc2022
+skopeo --override-os windows copy docker://mcr.microsoft.com/windows/servercore:ltsc2022 dir:servercore
+skopeo --override-os windows copy dir:servercore docker://bastion.pietersmalan.com:8443/windows/servercore:ltsc2022
+
+skopeo --override-os windows copy docker://quay.io/revoman/webserver:latest dir:webserver
+skopeo --override-os windows copy dir:webserver docker://bastion.pietersmalan.com:8443/revoman/webserver:latest
 ----
 
 Sample deployment, using nodeselector:
