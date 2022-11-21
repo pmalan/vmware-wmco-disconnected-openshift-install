@@ -1,7 +1,28 @@
-= VMWare Windows Machine Config Operator install in a disconnected OpenShift
+= Disconnected Openshift
+Pieter Malan <pmalan@redhat.com> <pieter.s.malan@gmail.com>
+:doctype: book
+:icons: font
+:hide-uri-scheme:
 
-[abstract]
-VMWare with Windows Node disconnected OpenShift install 
+:appendix-caption: Exhibit
+:sectnums:
+:toc: macro
 
-include::openshift-offline-mirror-install.adoc[OpenShift Offline using a Mirror]
+
+:toclevels: 2
+:icons: font
+
+:relfileprefix: ../
+:outfilesuffix:
+:sectnums:
+:sectnumlevels: 6
+:partnums:
+:chapter-signifier: Chapter
+:part-signifier: Part
+:book: true
+:pdf: true
+:source-highlighter: rouge
+
+:chapters-path: chapters/
+:imagesdir: images/
 

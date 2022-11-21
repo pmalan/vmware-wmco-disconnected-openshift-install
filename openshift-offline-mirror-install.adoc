@@ -1083,21 +1083,42 @@ skopeo --override-os windows copy docker://quay.io/revoman/webserver:latest dir:
 skopeo --override-os windows copy dir:webserver docker://bastion.pietersmalan.com:8443/revoman/webserver:latest
 ----
 
-Sample deployment, using nodeselector:
+Sample deployment, using https://github.com/therevoman/windows-containers/tree/main/simple-webserver - therevoman 
+
+oc adm policy add-scc-to-user anyuid -z runwinweb -n win-test-workload
+oc apply -f deployment.yaml
+
+deploysample.yaml:
+
 [code]
 ----
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: win-test-workload
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: runwinweb
+  namespace: win-test-workload
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wintest
-  namespace: test
+  annotations: {}
+  labels:
+    app: win-webserver
+  name: win-webserver
+  namespace: win-test-workload
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
-  revisionHistoryLimit: 10
+  revisionHistoryLimit: 4
   selector:
     matchLabels:
-      app: wintest
+      app: win-webserver
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -1105,31 +1126,77 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
-        app: wintest
+        app: win-webserver
+      name: win-webserver
     spec:
       containers:
-      - image: bastion.pietersmalan.com:8443/dotnet/samples@sha256:cd17042b156a7daaeb3879a34991a5fc4d7c8abfa257c135c157b912e4d27b5f
+      - name: win-webserver
+        image: quay.io/revoman/webserver:latest
         imagePullPolicy: IfNotPresent
-        name: container
-        ports:
-        - containerPort: 8080
-          protocol: TCP
-        resources: {}
         securityContext:
+          runAsGroup: 0
           runAsNonRoot: false
+          runAsUser: 0
           windowsOptions:
             runAsUserName: ContainerAdministrator
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        ports:
+          - containerPort: 8080
       dnsPolicy: ClusterFirst
+      nodeSelector:
+        kubernetes.io/os: windows
       restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
+      serviceAccountName: runwinweb
       terminationGracePeriodSeconds: 30
       tolerations:
       - key: os
         value: Windows
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: win-webserver
+  name: win-webserver
+  namespace: win-test-workload
+spec:
+#  clusterIP: 172.30.18.48
+#  clusterIPs:
+#  - 172.30.18.48
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: win-webserver
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: win-webserver
+  name: win-webserver
+  namespace: win-test-workload
+spec:
+#  host: web-win-test-workload.apps.ocs.openshift.works
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: win-webserver
+    weight: 100
+  wildcardPolicy: None
 
 ----
