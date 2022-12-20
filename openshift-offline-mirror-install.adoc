@@ -1072,7 +1072,7 @@ scheduling:
 
 oc-mirror does not handle Windows Containers with foreign layers.
 
-To copy images to mirror, use skopeo:
+To copy images to mirror, use skopeo, version 1.10, or later:
 
 [code]
 ----
@@ -1081,6 +1081,14 @@ skopeo --override-os windows copy dir:servercore docker://bastion.pietersmalan.c
 
 skopeo --override-os windows copy docker://quay.io/revoman/webserver:latest dir:webserver
 skopeo --override-os windows copy dir:webserver docker://bastion.pietersmalan.com:8443/revoman/webserver:latest
+----
+
+Alternative, if you don't have access to latest version, you can use a container:
+
+[code]
+----
+sudo podman run --privileged --rm -v $PWD:/var/lib/containers/storage:z quay.io/skopeo/stable copy  --override-os windows docker://mcr.microsoft.com/windows/servercore:ltsc2022 dir:/var/lib/containers/storage/servercore
+sudo podman run --privileged --rm -t -v $PWD:/var/lib/containers/storage:z quay.io/skopeo/stable copy --override-os windows --dest-creds quay:quayquay --dest-tls-verify=false dir:/var/lib/containers/storage/servercore docker://bastion.pietersmalan.com:8443/windows/servercore:ltsc2022
 ----
 
 Sample deployment, using https://github.com/therevoman/windows-containers/tree/main/simple-webserver - therevoman 
