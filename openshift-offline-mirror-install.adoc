@@ -1208,3 +1208,10 @@ spec:
   wildcardPolicy: None
 
 ----
+
+[note]
+----
+nerdctl.exe is a utility to examine image on Windows node.
+
+See https://github.com/containerd/nerdctl
+----
