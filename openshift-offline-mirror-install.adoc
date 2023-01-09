@@ -1210,5 +1210,5 @@ spec:
 ----
 
 [note]
-nerdctl.exe is a utility to examine image on Windows node. See https://github.com/containerd/nerdctl
+nerdctl.exe is a utility to examine images on Windows node. See https://github.com/containerd/nerdctl
 
