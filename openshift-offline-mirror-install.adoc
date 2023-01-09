@@ -1210,5 +1210,5 @@ spec:
 ----
 
 [note]
-nerdctl.exe is a utility to examine images on Windows node. See https://github.com/containerd/nerdctl
+nerdctl.exe is a utility to examine images on Windows node. See https://github.com/containerd/nerdctl. Nampespace is required - for example - c:\temp\nerdctl.exe images --namespace k8s.io
 
