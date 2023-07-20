@@ -25,7 +25,7 @@ sudo ./mirror-registry install --initUser quay --initPassword quayquay --quayHos
 . Open firewall port for Quay, if firewall is in use
 [code]
 ----
-sudo --add-port=8443/tcp --zone=public --permanent
+sudo firewall-cmd --add-port=8443/tcp --zone=public --permanent
 sudo firewall-cmd --reload
 ----
 [start=5]
